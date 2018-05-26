@@ -1,0 +1,26 @@
+﻿<Window x:Class="FileFinder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FileFinder"
+        mc:Ignorable="d"
+        Title="File Finder" Height="450" Width="800">
+    <Grid Name="MainGrid" Background="LightGray">
+        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" />
+        <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,72,35">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem  Name="Copy" Header="Copy"/>
+                    <MenuItem  Name="OpenInFolder" Header="Open in folder"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+        <Button x:Name="button" Content="..." Visibility="Collapsed" Background="White" Height="25" Margin="0,10,72,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="25"/>
+        <Button x:Name="Load" Content="Load" Visibility="Collapsed" Height="25" Margin="0,50,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" />
+        <ComboBox Margin="0,80,10,0" VerticalAlignment="Top" Visibility="Collapsed" SelectedIndex="0" ItemsSource="{Binding Drives}" SelectedValue="{Binding SelectedDrive}" HorizontalAlignment="Right" Width="57"/>
+        <TextBox x:Name="MessageTb" IsReadOnly="True" IsTabStop="True" KeyboardNavigation.TabNavigation="None" Focusable="False" KeyboardNavigation.IsTabStop="True" Background="LightGray" Text="{ Binding Messages}" TextWrapping="Wrap" Margin="10,0,10,5" Height="20" VerticalAlignment="Bottom"/>
+        <CheckBox Visibility="Collapsed" Content="TPL" HorizontalAlignment="Left" Margin="250,50,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.404,-1.4"/>
+    </Grid>
+</Window>
