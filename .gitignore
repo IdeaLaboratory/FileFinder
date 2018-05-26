@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/FileFinder/packages/OpenDialog.1.1.1
+/FileFinder/obj
+/FileFinder/bin
+/FileFinder/.vs/FileFinder
+/Rough_Snipt.txt
+/Setup/.vs
+*.pfx
+/.vs
+/Binaries
+/obj
+/src/.vs/FileFinder/v15
+/src/obj/Debug
