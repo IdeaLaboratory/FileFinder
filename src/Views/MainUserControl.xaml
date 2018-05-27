@@ -14,8 +14,8 @@
         <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,72,35">
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem  Name="Copy" Header="Copy"/>
-                    <MenuItem  Name="OpenInFolder" Header="Open in folder"/>
+                    <MenuItem  Name="Copy" Header="Copy" Click="CopyClick"/>
+                    <MenuItem  Name="OpenInFolder" Header="Open in folder" Click="OpenInFolderClick"/>
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>

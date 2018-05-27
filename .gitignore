@@ -14,3 +14,5 @@
 /obj
 /src/.vs/FileFinder/v15
 /src/obj/Debug
+/Setup
+/src/obj/Release
