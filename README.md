@@ -2,5 +2,5 @@
 #### Find files within fraction of second.It is a faster approach than the conventional search in file explorer.
 
 <p align="right">
-  <img src="https://user-images.githubusercontent.com/13999170/40584731-9f9cf9f6-61c3-11e8-9c1c-bbe7a732d8d6.jpg"">
+  <img src="https://user-images.githubusercontent.com/13999170/40588844-88cf8b74-6201-11e8-91af-ea4a1d36a45d.jpg"">
 </p>
