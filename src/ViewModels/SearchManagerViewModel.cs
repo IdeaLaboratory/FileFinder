@@ -6,17 +6,20 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using FileFinder.Commands;
 using FileFinder.ViewModel;
 using HashMap;
 
-namespace Search
+namespace FileFinder.ViewModel
 {
-    public class SearchManagerViewModel : BaseViewModel
+    public partial class SearchManagerViewModel : BaseViewModel
     {
+
         HashMap<string, List<string>> allFiles = null;
         string appDir;
 
-        public SearchManagerViewModel()
+        private SearchManagerViewModel()
         {
             LoadAllDrives();
             CheckSystemRequirements();
@@ -26,6 +29,21 @@ namespace Search
             });
             loadingThread.Start();
         }
+
+        private static SearchManagerViewModel _instance;
+
+        public static SearchManagerViewModel Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new SearchManagerViewModel();
+                }
+                return _instance;
+            }
+        }
+
 
         private void CheckSystemRequirements()
         {
@@ -46,7 +64,6 @@ namespace Search
                 file.Dispose();
             }
             #endregion
-
         }
 
         private void LoadAllDrives()
@@ -73,6 +90,7 @@ namespace Search
                 OnPropertyChanged("Files");
             }
         }
+
 
         private string _selectedDrive = "All Drives";
 
@@ -125,6 +143,18 @@ namespace Search
             }
         }
 
+        private string _searchString;
+
+        public string SearchString
+        {
+            get { return _searchString; }
+            set
+            {
+                _searchString = value;
+                OnPropertyChanged("SearchString");
+            }
+        }
+
         private bool tpl;
 
         public bool TPL
@@ -145,12 +175,12 @@ namespace Search
         }
 
         #region will move command Part
-        public object Execute(object parameter)
+        public object ExecuteSearch()
         {
-            if (parameter?.ToString() == null)
+            if (string.IsNullOrEmpty(SearchString))
                 return null;
 
-            string keyword = parameter.ToString();
+            string keyword = SearchString;
 
             keyword = WildCardToRegular(keyword);
 
@@ -173,7 +203,7 @@ namespace Search
             }
             Files = allAvailablepaths;
 
-            GetFilesFromPath(parameter as string, tempFiles);
+            GetFilesFromPath(SearchString, tempFiles);
             stopWatch.Stop();
             Console.WriteLine("GetFilesFromPath" + stopWatch.Elapsed);
 
@@ -232,7 +262,6 @@ namespace Search
             allFiles = tempFiles;
             BinarySerializer.Serialize(tempFiles, appDir + "searchDatabase.bin");
         }
-
 
         void GetFilesFromPath(string path, HashMap<string, List<string>> files)
         {

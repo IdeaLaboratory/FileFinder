@@ -4,12 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FileFinder.View"
+             xmlns:commands="clr-namespace:FileFinder.Commands"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid Name="MainGrid" Background="LightGray">
-        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" />
+        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding SearchString}"/>
+        <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" Command="{Binding GetSearchCommand}"/>
         <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,72,35">
             <ListView.ContextMenu>
                 <ContextMenu>
