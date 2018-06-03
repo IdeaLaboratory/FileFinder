@@ -8,8 +8,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Grid Name="MainGrid" Background="LightGray">
-        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding SearchString}"/>
+    <Grid Name="MainGrid" Background="LightGray" FocusManager.FocusedElement="{Binding ElementName=SearchStringTextBox}">
+        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged}">
+            <TextBox.InputBindings>
+                <KeyBinding 
+            Key="Enter" 
+            Command="{Binding GetSearchCommand}" 
+            CommandParameter="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}" />
+            </TextBox.InputBindings>
+        </TextBox>
         <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" Command="{Binding GetSearchCommand}"/>
         <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,72,35">
             <ListView.ContextMenu>

@@ -20,6 +20,8 @@ namespace FileFinder.Commands
 
         public void Execute(object parameter)
         {
+            if (!SearchManagerViewModel.Instance.ReadyToSearch)
+                return;
             SearchManagerViewModel.Instance.ExecuteSearch();
         }
     }
