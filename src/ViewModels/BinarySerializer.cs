@@ -8,7 +8,6 @@ using System.Xml.Serialization;
 
 namespace FileFinder.ViewModel
 {
-
     public class BinarySerializer
     {
         public static void Serialize(HashMap<string, List<string>> emps, String filename)
@@ -27,17 +26,32 @@ namespace FileFinder.ViewModel
 
         public static T Deserialize<T>(String filename)
         {
-            //Format the object as Binary
-            XmlSerializer formatter = new XmlSerializer(typeof(HashMap<string, List<string>>));
+            FileStream fs = null;
+            T emps;
+            try
+            {
+                //Format the object as Binary
+                XmlSerializer formatter = new XmlSerializer(typeof(HashMap<string, List<string>>));
 
-            //Reading the file from the server
-            FileStream fs = File.Open(filename, FileMode.Open);
+                //Reading the file from the server
+                fs = File.Open(filename, FileMode.Open);
+                object obj = formatter.Deserialize(fs);
+                emps = (T)obj;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                if (fs != null)
+                {
+                    fs.Flush();
+                    fs.Close();
+                    fs.Dispose();
+                }
+            }
 
-            object obj = formatter.Deserialize(fs);
-            T emps = (T)obj;
-            fs.Flush();
-            fs.Close();
-            fs.Dispose();
             return emps;
         }
 

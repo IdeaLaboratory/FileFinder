@@ -6,9 +6,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using FileFinder.Commands;
-using FileFinder.ViewModel;
 using HashMap;
 
 namespace FileFinder.ViewModel
@@ -16,9 +13,12 @@ namespace FileFinder.ViewModel
     public partial class SearchManagerViewModel : BaseViewModel
     {
 
+        #region private fields
         HashMap<string, List<string>> allFiles = null;
-        string appDir;
+        string appDir; 
+        #endregion
 
+        #region ctor
         private SearchManagerViewModel()
         {
             LoadAllDrives();
@@ -29,6 +29,9 @@ namespace FileFinder.ViewModel
             });
             loadingThread.Start();
         }
+        #endregion
+
+        #region singleton
 
         private static SearchManagerViewModel _instance;
 
@@ -42,39 +45,10 @@ namespace FileFinder.ViewModel
                 }
                 return _instance;
             }
-        }
+        } 
+        #endregion
 
-
-        private void CheckSystemRequirements()
-        {
-            appDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Search\\";
-            #region create application directory
-            if (!Directory.Exists(appDir))
-            {
-                Directory.CreateDirectory(appDir);
-            }
-            #endregion
-
-            #region create log file
-
-            if (!File.Exists(appDir + "searchLoadException.log"))
-            {
-                var file = File.Create(appDir + "searchLoadException.log");
-                file.Close();
-                file.Dispose();
-            }
-            #endregion
-        }
-
-        private void LoadAllDrives()
-        {
-            _drives.Add("All Drives");
-            foreach (var eachDrive in DriveInfo.GetDrives())
-            {
-                if (eachDrive.IsReady)
-                    _drives.Add(eachDrive.Name);
-            }
-        }
+        #region Public properties
 
         private List<string> _files = new List<string>();
 
@@ -169,12 +143,21 @@ namespace FileFinder.ViewModel
             }
         }
 
-        private String WildCardToRegular(String value)
-        {
-            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
-        }
+        private bool _matchCase = false;
 
-        #region will move command Part
+        public bool MatchCase
+        {
+            get { return _matchCase; }
+            set
+            {
+                _matchCase = value;
+                OnPropertyChanged("MatchCase");
+            }
+        }
+        #endregion
+        
+        #region Command
+
         public object ExecuteSearch()
         {
             if (string.IsNullOrEmpty(SearchString))
@@ -193,7 +176,7 @@ namespace FileFinder.ViewModel
             stopWatch.Start();
             foreach (var key in allFiles.Keys)
             {
-                if (regex.IsMatch(key))
+                if (IsMatch(keyword, key))
                 {
                     allFiles.TryGetValue(key, out paths);
 
@@ -214,7 +197,54 @@ namespace FileFinder.ViewModel
             return null;
         }
 
-        internal object Load()
+        #endregion
+
+        #region private methods
+
+        private void CheckSystemRequirements()
+        {
+            appDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Search\\";
+            #region create application directory
+            if (!Directory.Exists(appDir))
+            {
+                Directory.CreateDirectory(appDir);
+            }
+            #endregion
+
+            #region create log file
+
+            if (!File.Exists(appDir + "searchLoadException.log"))
+            {
+                var file = File.Create(appDir + "searchLoadException.log");
+                file.Close();
+                file.Dispose();
+            }
+            #endregion
+        }
+
+        private void LoadAllDrives()
+        {
+            _drives.Add("All Drives");
+            foreach (var eachDrive in DriveInfo.GetDrives())
+            {
+                if (eachDrive.IsReady)
+                    _drives.Add(eachDrive.Name);
+            }
+        }
+
+        private String WildCardToRegular(String value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
+        }
+
+        private bool IsMatch(string keyword, string key)
+        {
+            if (MatchCase)
+                return Regex.IsMatch(key, keyword);
+            return Regex.IsMatch(key, keyword, RegexOptions.IgnoreCase);
+        }
+
+        private object Load()
         {
             if (!File.Exists(appDir + "searchDatabase.bin"))
             {
@@ -231,7 +261,7 @@ namespace FileFinder.ViewModel
             return null;
         }
 
-        void LoadAllFiles()
+        private void LoadAllFiles()
         {
             HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
             if (SelectedDrive == "All Drives")
@@ -263,7 +293,7 @@ namespace FileFinder.ViewModel
             BinarySerializer.Serialize(tempFiles, appDir + "searchDatabase.bin");
         }
 
-        void GetFilesFromPath(string path, HashMap<string, List<string>> files)
+        private void GetFilesFromPath(string path, HashMap<string, List<string>> files)
         {
             try
             {
@@ -303,8 +333,7 @@ namespace FileFinder.ViewModel
             {
                 GetFilesFromPath(eachPath, files);
             }
-        }
-
+        } 
         #endregion
     }
 }

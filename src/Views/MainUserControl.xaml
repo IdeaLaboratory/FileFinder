@@ -9,7 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid Name="MainGrid" Background="LightGray" FocusManager.FocusedElement="{Binding ElementName=SearchStringTextBox}">
-        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,72,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged}">
+        <TextBox x:Name="SearchStringTextBox" Height="25" Margin="10,10,102,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding SearchString, UpdateSourceTrigger=PropertyChanged}">
             <TextBox.InputBindings>
                 <KeyBinding 
             Key="Enter" 
@@ -17,8 +17,8 @@
             CommandParameter="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}" />
             </TextBox.InputBindings>
         </TextBox>
-        <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="57" Command="{Binding GetSearchCommand}"/>
-        <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,72,35">
+        <Button x:Name="SearchButton" IsEnabled="{Binding ReadyToSearch}" Content="Search" Height="25" Margin="0,10,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="77" Command="{Binding GetSearchCommand}" RenderTransformOrigin="0.416,1.6"/>
+        <ListView x:Name="ResultListBox" ItemsSource="{Binding Files}" BorderBrush="Gray" Background="#f3f3f3" Margin="10,50,102,35">
             <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem  Name="Copy" Header="Copy" Click="CopyClick"/>
@@ -31,5 +31,21 @@
         <ComboBox Margin="0,80,10,0" VerticalAlignment="Top" Visibility="Collapsed" SelectedIndex="0" ItemsSource="{Binding Drives}" SelectedValue="{Binding SelectedDrive}" HorizontalAlignment="Right" Width="57"/>
         <TextBox x:Name="MessageTb" IsReadOnly="True" IsTabStop="True" KeyboardNavigation.TabNavigation="None" Focusable="False" KeyboardNavigation.IsTabStop="True" Background="LightGray" Text="{ Binding Messages}" TextWrapping="Wrap" Margin="10,0,10,5" Height="20" VerticalAlignment="Bottom"/>
         <CheckBox Visibility="Collapsed" Content="TPL" HorizontalAlignment="Left" Margin="250,50,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.404,-1.4"/>
+        <GroupBox Name="OptionGB" Margin="0,50,2,35" HorizontalAlignment="Right" Width="97">
+            <GroupBox.Header>
+                <Grid Name="OptionGrid" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1" Text="Options"/>
+                    <Expander Name="OptionsExpender" Grid.Column="2" Height="20" Margin="2,0,0,0" Expanded="Expander_Expanded" Collapsed="Expander_Collapsed"/>
+                </Grid>
+            </GroupBox.Header>
+            <Grid Name="OptionsContainerGrid">
+            <CheckBox Content="Match case" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0" IsChecked="{Binding MatchCase}"/>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>

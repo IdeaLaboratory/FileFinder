@@ -24,6 +24,7 @@ namespace FileFinder.View
         public MainUserControl()
         {
             InitializeComponent();
+            Expander_Collapsed(null, null);
         }
 
         private void CopyClick(object sender, RoutedEventArgs e)
@@ -48,6 +49,18 @@ namespace FileFinder.View
             string argument = "/select, \"" + v + "\"";
             Process.Start("explorer.exe", argument);
             MessageTb.Text = "Opened the file location";
+        }
+
+        private void Expander_Expanded(object sender, RoutedEventArgs e)
+        {
+            OptionsContainerGrid.Visibility = Visibility.Visible;
+            OptionGB.BorderThickness = new Thickness(1,1,1,1);
+        }
+
+        private void Expander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            OptionsContainerGrid.Visibility = Visibility.Collapsed;
+            OptionGB.BorderThickness = new Thickness(0);
         }
     }
 }
