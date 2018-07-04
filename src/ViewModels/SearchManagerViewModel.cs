@@ -171,12 +171,12 @@ namespace FileFinder.ViewModel
 
             HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
             List<string> paths = null;
-            Regex regex = new Regex(keyword);
+            Regex keywordRegex = new Regex(keyword);
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             foreach (var key in allFiles.Keys)
             {
-                if (IsMatch(keyword, key))
+                if (IsMatch(keyword, key, keywordRegex))
                 {
                     allFiles.TryGetValue(key, out paths);
 
@@ -237,10 +237,10 @@ namespace FileFinder.ViewModel
             return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
         }
 
-        private bool IsMatch(string keyword, string key)
+        private bool IsMatch(string keyword, string key, Regex rx = null)
         {
             if (MatchCase)
-                return Regex.IsMatch(key, keyword);
+                return rx.IsMatch(key);
             return Regex.IsMatch(key, keyword, RegexOptions.IgnoreCase);
         }
 
