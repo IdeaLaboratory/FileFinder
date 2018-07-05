@@ -75,6 +75,7 @@
     <Compile Include="Commands\SearchCommand.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\BinarySerializer.cs" />
+    <Compile Include="ViewModels\Logger.cs" />
     <Compile Include="ViewModels\SearchManagerViewModel.cs" />
     <Compile Include="Views\MainUserControl.xaml.cs">
       <DependentUpon>MainUserControl.xaml</DependentUpon>

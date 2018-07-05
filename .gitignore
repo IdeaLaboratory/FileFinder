@@ -16,3 +16,4 @@
 /src/obj/Debug
 /Setup
 /src/obj/Release
+*.user
