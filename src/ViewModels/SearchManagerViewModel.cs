@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FileFinder.ViewModels;
 using HashMap;
 
 namespace FileFinder.ViewModel
@@ -246,18 +247,25 @@ namespace FileFinder.ViewModel
 
         private object Load()
         {
-            if (!File.Exists(appDir + "searchDatabase.bin"))
+            try
             {
-                Messages = "Creating Database for the first time";
-                LoadAllFiles();
+                if (!File.Exists(appDir + "searchDatabase.bin"))
+                {
+                    Messages = "Creating Database for the first time";
+                    LoadAllFiles();
+                }
+                else
+                {
+                    Messages = "Loading database";
+                    allFiles = BinarySerializer.Deserialize<HashMap<string, List<string>>>(appDir + "searchDatabase.bin");
+                }
+                Messages = "Ready to search";
+                ReadyToSearch = true;
             }
-            else
+            catch (Exception e)
             {
-                Messages = "Loading database";
-                allFiles = BinarySerializer.Deserialize<HashMap<string, List<string>>>(appDir + "searchDatabase.bin");
+                Logger.WriteLog(appDir, "errorLogs.log", e.ToString());
             }
-            Messages = "Ready to search";
-            ReadyToSearch = true;
             return null;
         }
 
