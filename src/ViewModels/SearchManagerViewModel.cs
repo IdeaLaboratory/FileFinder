@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using FileFinder.ViewModels;
 using HashMap;
 
 namespace FileFinder.ViewModel
@@ -16,7 +15,7 @@ namespace FileFinder.ViewModel
 
         #region private fields
         HashMap<string, List<string>> allFiles = null;
-        string appDir; 
+        string appDir;
         #endregion
 
         #region ctor
@@ -46,7 +45,7 @@ namespace FileFinder.ViewModel
                 }
                 return _instance;
             }
-        } 
+        }
         #endregion
 
         #region Public properties
@@ -156,28 +155,31 @@ namespace FileFinder.ViewModel
             }
         }
         #endregion
-        
+
         #region Command
 
         public object ExecuteSearch()
         {
             if (string.IsNullOrEmpty(SearchString))
                 return null;
-
-            string keyword = SearchString;
-
+            string path;
+            string keyword;
+            bool includesPath = IncludesPath(out path, out keyword);
+            if (!includesPath)
+            {
+                keyword = SearchString;
+            }
             keyword = WildCardToRegular(keyword);
-
             List<string> allAvailablepaths = new List<string>();
 
             HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
             List<string> paths = null;
-            Regex keywordRegex = new Regex(keyword);
+            Regex regex = new Regex(keyword);
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
             foreach (var key in allFiles.Keys)
             {
-                if (IsMatch(keyword, key, keywordRegex))
+                if (IsMatch(keyword, key))
                 {
                     allFiles.TryGetValue(key, out paths);
 
@@ -185,6 +187,19 @@ namespace FileFinder.ViewModel
                         allAvailablepaths.AddRange(paths);
                 }
             }
+            if (includesPath)
+            {
+                List<string> tempAvailablepaths = new List<string>(allAvailablepaths);
+                allAvailablepaths.Clear();
+                foreach (var eachFilePath in tempAvailablepaths)
+                {
+                    if (eachFilePath.ToUpper().Contains(path.ToUpper()))
+                    {
+                        allAvailablepaths.Add(eachFilePath);
+                    }
+                }
+            }
+
             Files = allAvailablepaths;
 
             GetFilesFromPath(SearchString, tempFiles);
@@ -196,6 +211,27 @@ namespace FileFinder.ViewModel
                 " results found in " + stopWatch.Elapsed.TotalSeconds.ToString("n2") + " second";
 
             return null;
+        }
+
+        private bool IncludesPath(out string path, out string keyword)
+        {
+            // check if searchString includs path
+            path = null;
+            keyword = null;
+            int pathEndIndex = SearchString.LastIndexOf('\\');
+            if (pathEndIndex < 0)
+            {
+                return false;
+            }
+
+            path = SearchString.Substring(0, pathEndIndex+1);
+            if (Directory.Exists(path))
+            {
+                keyword = SearchString.Substring(pathEndIndex + 1, _searchString.Length - pathEndIndex - 1);
+                return true;
+            }
+
+            return false;
         }
 
         #endregion
@@ -238,34 +274,27 @@ namespace FileFinder.ViewModel
             return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
         }
 
-        private bool IsMatch(string keyword, string key, Regex rx = null)
+        private bool IsMatch(string keyword, string key)
         {
             if (MatchCase)
-                return rx.IsMatch(key);
+                return Regex.IsMatch(key, keyword);
             return Regex.IsMatch(key, keyword, RegexOptions.IgnoreCase);
         }
 
         private object Load()
         {
-            try
+            if (!File.Exists(appDir + "searchDatabase.bin"))
             {
-                if (!File.Exists(appDir + "searchDatabase.bin"))
-                {
-                    Messages = "Creating Database for the first time";
-                    LoadAllFiles();
-                }
-                else
-                {
-                    Messages = "Loading database";
-                    allFiles = BinarySerializer.Deserialize<HashMap<string, List<string>>>(appDir + "searchDatabase.bin");
-                }
-                Messages = "Ready to search";
-                ReadyToSearch = true;
+                Messages = "Creating Database for the first time";
+                LoadAllFiles();
             }
-            catch (Exception e)
+            else
             {
-                Logger.WriteLog(appDir, "errorLogs.log", e.ToString());
+                Messages = "Loading database";
+                allFiles = BinarySerializer.Deserialize<HashMap<string, List<string>>>(appDir + "searchDatabase.bin");
             }
+            Messages = "Ready to search";
+            ReadyToSearch = true;
             return null;
         }
 
@@ -341,7 +370,7 @@ namespace FileFinder.ViewModel
             {
                 GetFilesFromPath(eachPath, files);
             }
-        } 
+        }
         #endregion
     }
 }

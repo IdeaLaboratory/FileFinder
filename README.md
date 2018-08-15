@@ -1,7 +1,7 @@
 # FileFinder v1.3
 #### Find files within fraction of second. It is a faster approach than the conventional search in file explorer.
-### Download @ https://github.com/IdeaLaboratory/FileFinder/releases/tag/1.3
+### Download @ https://github.com/IdeaLaboratory/FileFinder/releases/
 <p align="right">
-  <img src="https://user-images.githubusercontent.com/13999170/41563466-3fb308f8-736d-11e8-979d-b7c99a636219.jpg">
+  <img src="https://user-images.githubusercontent.com/13999170/44139917-2a753d70-a096-11e8-9dd4-42c5b327b6d9.png">
 </p>
 
