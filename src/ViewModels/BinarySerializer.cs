@@ -12,6 +12,15 @@ namespace FileFinder.ViewModel
     {
         public static void Serialize(HashMap<string, List<string>> emps, String filename)
         {
+            if (emps == null || emps.Count <1)
+            {
+                return;
+            }
+            if (!Directory.Exists(filename))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filename));
+            }
+
             //Create the stream to add object into it.
             System.IO.Stream ms = File.OpenWrite(filename);
             //Format the object as Binary

@@ -14,7 +14,8 @@ namespace FileFinder.ViewModel
     {
 
         #region private fields
-        HashMap<string, List<string>> allFiles = null;
+        HashMap<string, List<string>>[] filesOfAllDrives;
+        private bool doesDatabaseExist = true;
         string appDir;
         #endregion
 
@@ -23,6 +24,7 @@ namespace FileFinder.ViewModel
         {
             LoadAllDrives();
             CheckSystemRequirements();
+
             Thread loadingThread = new Thread(delegate ()
             {
                 Load();
@@ -66,7 +68,7 @@ namespace FileFinder.ViewModel
         }
 
 
-        private string _selectedDrive = "All Drives";
+        private string _selectedDrive;// = "All Drives";
 
         public string SelectedDrive
         {
@@ -105,7 +107,7 @@ namespace FileFinder.ViewModel
             }
         }
 
-        private bool _readyToSearch;
+        private bool _readyToSearch = true;
 
         public bool ReadyToSearch
         {
@@ -125,6 +127,11 @@ namespace FileFinder.ViewModel
             set
             {
                 _searchString = value;
+                Thread loadingThread = new Thread(delegate ()
+                {
+                    ExecuteSearch();
+                });
+                loadingThread.Start();
                 OnPropertyChanged("SearchString");
             }
         }
@@ -152,6 +159,11 @@ namespace FileFinder.ViewModel
             {
                 _matchCase = value;
                 OnPropertyChanged("MatchCase");
+                Thread loadingThread = new Thread(delegate ()
+                {
+                    ExecuteSearch();
+                });
+                loadingThread.Start();
             }
         }
         #endregion
@@ -162,38 +174,45 @@ namespace FileFinder.ViewModel
         {
             if (string.IsNullOrEmpty(SearchString))
                 return null;
+
             string path;
             string keyword;
-            bool includesPath = IncludesPath(out path, out keyword);
-            if (!includesPath)
+            var includesPath = IncludesPath(out path, out keyword);
+
+            if (includesPath == SearchStringType.NoPath)
             {
                 keyword = SearchString;
             }
-            keyword = WildCardToRegular(keyword);
+
             List<string> allAvailablepaths = new List<string>();
 
-            HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
+            //HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
             List<string> paths = null;
-            Regex regex = new Regex(keyword);
+            //Regex regex = new Regex(keyword);
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-            foreach (var key in allFiles.Keys)
-            {
-                if (IsMatch(keyword, key))
-                {
-                    allFiles.TryGetValue(key, out paths);
 
-                    if (paths != null)
-                        allAvailablepaths.AddRange(paths);
+            for (int i = 0; i < _drives.Count; i++)
+            {
+                foreach (var key in filesOfAllDrives[i].Keys)
+                {
+                    if (IsMatch(keyword, key, SearchString.Contains('*')))
+                    {
+                        filesOfAllDrives[i].TryGetValue(key, out paths);
+
+                        if (paths != null)
+                            allAvailablepaths.AddRange(paths);
+                    }
                 }
             }
-            if (includesPath)
+
+            if (!(includesPath == SearchStringType.NoPath))
             {
                 List<string> tempAvailablepaths = new List<string>(allAvailablepaths);
                 allAvailablepaths.Clear();
                 foreach (var eachFilePath in tempAvailablepaths)
                 {
-                    if (eachFilePath.ToUpper().Contains(path.ToUpper()))
+                    if (IsMatch(path, eachFilePath, false))
                     {
                         allAvailablepaths.Add(eachFilePath);
                     }
@@ -202,7 +221,7 @@ namespace FileFinder.ViewModel
 
             Files = allAvailablepaths;
 
-            GetFilesFromPath(SearchString, tempFiles);
+            //GetFilesFromPath(SearchString, tempFiles);
             stopWatch.Stop();
             Console.WriteLine("GetFilesFromPath" + stopWatch.Elapsed);
 
@@ -213,7 +232,7 @@ namespace FileFinder.ViewModel
             return null;
         }
 
-        private bool IncludesPath(out string path, out string keyword)
+        private SearchStringType IncludesPath(out string path, out string keyword)
         {
             // check if searchString includs path
             path = null;
@@ -221,17 +240,25 @@ namespace FileFinder.ViewModel
             int pathEndIndex = SearchString.LastIndexOf('\\');
             if (pathEndIndex < 0)
             {
-                return false;
+                return SearchStringType.NoPath;
             }
 
-            path = SearchString.Substring(0, pathEndIndex+1);
+            path = SearchString.Substring(0, pathEndIndex + 1);
+            keyword = SearchString.Substring(pathEndIndex + 1, _searchString.Length - pathEndIndex - 1);
+
             if (Directory.Exists(path))
             {
-                keyword = SearchString.Substring(pathEndIndex + 1, _searchString.Length - pathEndIndex - 1);
-                return true;
+                return SearchStringType.FullPath;
             }
 
-            return false;
+            return SearchStringType.PartialPath;
+        }
+
+        enum SearchStringType
+        {
+            FullPath,
+            PartialPath,
+            NoPath
         }
 
         #endregion
@@ -261,10 +288,11 @@ namespace FileFinder.ViewModel
 
         private void LoadAllDrives()
         {
-            _drives.Add("All Drives");
+            //_drives.Add("All Drives");
             foreach (var eachDrive in DriveInfo.GetDrives())
             {
-                if (eachDrive.IsReady)
+                if (eachDrive.IsReady &&
+                    (eachDrive.Name.Contains('E') || eachDrive.Name.Contains('M') || eachDrive.Name.Contains('C')))
                     _drives.Add(eachDrive.Name);
             }
         }
@@ -274,8 +302,17 @@ namespace FileFinder.ViewModel
             return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
         }
 
-        private bool IsMatch(string keyword, string key)
+        private bool IsMatch(string keyword, string key, bool hasRegex = true)
         {
+            if (!hasRegex)
+            {
+                if (MatchCase)
+                    return key.Contains(keyword);
+                return key.ToUpper().Contains(keyword.ToUpper());
+            }
+
+            keyword = WildCardToRegular(keyword);
+
             if (MatchCase)
                 return Regex.IsMatch(key, keyword);
             return Regex.IsMatch(key, keyword, RegexOptions.IgnoreCase);
@@ -283,51 +320,101 @@ namespace FileFinder.ViewModel
 
         private object Load()
         {
-            if (!File.Exists(appDir + "searchDatabase.bin"))
+            // initialize 
+            filesOfAllDrives = new HashMap<string, List<string>>[_drives.Count];
+            InitializeTempFilesArray(filesOfAllDrives);
+
+            if (!Directory.Exists(appDir + "db\\"))
             {
                 Messages = "Creating Database for the first time";
                 LoadAllFiles();
+                doesDatabaseExist = false;
             }
             else
             {
                 Messages = "Loading database";
-                allFiles = BinarySerializer.Deserialize<HashMap<string, List<string>>>(appDir + "searchDatabase.bin");
+                var bins = Directory.GetFiles(appDir + "db\\", "*.bin");
+                bool hasDatabase;
+                for (int i = 0; i < _drives.Count; i++)
+                {
+                    hasDatabase = false;
+                    foreach (var bin in bins)
+                    {
+                        var filename = Path.GetFileNameWithoutExtension(bin);
+                        if (_drives[i].Contains(filename))
+                        {
+                            filesOfAllDrives[i] = BinarySerializer.Deserialize<HashMap<string, List<string>>>(bin);
+                            hasDatabase = true;
+                            break;
+                        }
+                    }
+                    if (!hasDatabase)
+                    {
+                        GetFilesFromPath(_drives[i], filesOfAllDrives[i]);
+                        BinarySerializer.Serialize(filesOfAllDrives[i], appDir + "db\\" + _drives[i].Substring(0, _drives[i].Length - 2) + ".bin");
+                    }
+                }
             }
+
             Messages = "Ready to search";
             ReadyToSearch = true;
+
+            if (!doesDatabaseExist)
+            {
+                CreateDataBase();
+            }
+
             return null;
+        }
+
+        private void CreateDataBase()
+        {
+            int x = 0;
+            foreach (var tempFiles in filesOfAllDrives)
+            {
+                if (!(tempFiles != null && tempFiles.Count > 0))
+                {
+                    continue;
+                }
+
+                BinarySerializer.Serialize(tempFiles, appDir + "db\\" + _drives[x].Substring(0, _drives[x].Length - 2) + ".bin");
+                x++;
+            }
         }
 
         private void LoadAllFiles()
         {
-            HashMap<string, List<string>> tempFiles = new HashMap<string, List<string>>();
-            if (SelectedDrive == "All Drives")
-            {
-                int x = 0;
-                if (TPL == true)
-                {
-                    Parallel.For(1,
-                                 _drives.Count - 1,
-                                 index =>
-                                 {
-                                     GetFilesFromPath(_drives[x++], tempFiles);
-                                 });
-                }
-                else
-                {
 
-                    for (int i = 1; i < _drives.Count; i++)
-                    {
-                        GetFilesFromPath(_drives[i], tempFiles);
-                    }
-                }
-            }
-            else
+            Parallel.For(0, _drives.Count, index =>
+                        {
+                            GetFilesFromPath(_drives[index], filesOfAllDrives[index]);
+                        }
+                        );
+
+
+            //object obj = new object();
+            //lock (obj)
+            //{
+            //    for (int i = 1; i < _drives.Count; i++)
+            //    {
+            //        Thread loadingThread = new Thread(delegate ()
+            //        {
+            //            GetFilesFromPath(_drives[i], tempFilesArray[(i - 1)]);
+
+            //        //allFiles = tempFilesArray[i];
+            //        //BinarySerializer.Serialize(tempFilesArray[i - 1], appDir + "searchDatabase_" + i.ToString() + ".bin");
+            //    });
+            //        loadingThread.Start();
+            //    }
+            //}
+        }
+
+        private void InitializeTempFilesArray(HashMap<string, List<string>>[] tempFilesArray)
+        {
+            for (int i = 0; i < _drives.Count; i++)
             {
-                GetFilesFromPath(SelectedDrive, tempFiles);
+                tempFilesArray[i] = new HashMap<string, List<string>>();
             }
-            allFiles = tempFiles;
-            BinarySerializer.Serialize(tempFiles, appDir + "searchDatabase.bin");
         }
 
         private void GetFilesFromPath(string path, HashMap<string, List<string>> files)
@@ -357,12 +444,6 @@ namespace FileFinder.ViewModel
             }
             catch (Exception e)
             {
-#if DEBUG
-                using (StreamWriter writetext = new StreamWriter(appDir + "searchLoadException.log", true))
-                {
-                    writetext.WriteLine(e.Message);
-                }
-#endif
                 return;
             }
 
