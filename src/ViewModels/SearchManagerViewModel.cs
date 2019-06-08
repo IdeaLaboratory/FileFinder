@@ -291,8 +291,7 @@ namespace FileFinder.ViewModel
             //_drives.Add("All Drives");
             foreach (var eachDrive in DriveInfo.GetDrives())
             {
-                if (eachDrive.IsReady &&
-                    (eachDrive.Name.Contains('E') || eachDrive.Name.Contains('M') || eachDrive.Name.Contains('C')))
+                if (eachDrive.IsReady)
                     _drives.Add(eachDrive.Name);
             }
         }
@@ -326,7 +325,7 @@ namespace FileFinder.ViewModel
 
             if (!Directory.Exists(appDir + "db\\"))
             {
-                Messages = "Creating Database for the first time";
+                Messages = "Creating database for the first time";
                 LoadAllFiles();
                 doesDatabaseExist = false;
             }
@@ -350,6 +349,8 @@ namespace FileFinder.ViewModel
                     }
                     if (!hasDatabase)
                     {
+                        ReadyToSearch = false;
+                        Messages = "Creating new drive database";
                         GetFilesFromPath(_drives[i], filesOfAllDrives[i]);
                         BinarySerializer.Serialize(filesOfAllDrives[i], appDir + "db\\" + _drives[i].Substring(0, _drives[i].Length - 2) + ".bin");
                     }
